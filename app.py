@@ -222,13 +222,13 @@ st.divider()
 
 # === СЕКЦИЯ 1: ЖАДИ vs ЛЕО ===
 
+# === СЕКЦИЯ 1: ЖАДИ vs ЛЕО ===
 st.header(translations["section_1_title"][lang_code])
 st.markdown(translations["section_1_text"][lang_code])
 
 df["jade_cum"] = df["jade_escapes"].cumsum()
 df["leo_cum"] = df["leo_escapes"].cumsum()
 
-# Маленькие фото персонажей рядом с легендой (через колонки)
 col_legend, col_chart = st.columns([1, 5])
 
 with col_legend:
@@ -240,7 +240,9 @@ with col_legend:
             f'<b style="color:#D2691E;">{translations["jade_name"][lang_code]}</b></div>',
             unsafe_allow_html=True,
         )
+
     st.write("")
+
     if leo_img:
         st.markdown(
             f'<div style="text-align:center;"><img src="{leo_img}" '
@@ -254,42 +256,74 @@ with col_chart:
     chart_placeholder = st.empty()
 
     if st.button(translations["start_button"][lang_code], type="primary", key="start_jade_leo"):
-        step = 8
+        step = 3
+
         for i in range(1, len(df) + 1, step):
             sub = df.iloc[:i]
             fig = go.Figure()
+
             fig.add_trace(go.Scatter(
-                x=sub["ep_index"], y=sub["jade_cum"],
-                mode="lines+markers", name="Жаді",
+                x=sub["ep_index"],
+                y=sub["jade_cum"],
+                mode="lines+markers",
+                name=translations["jade_name"][lang_code],
                 line=dict(color="#D2691E", width=3),
                 marker=dict(size=4),
             ))
+
             fig.add_trace(go.Scatter(
-                x=sub["ep_index"], y=sub["leo_cum"],
-                mode="lines+markers", name="Лео",
+                x=sub["ep_index"],
+                y=sub["leo_cum"],
+                mode="lines+markers",
+                name=translations["leo_name"][lang_code],
                 line=dict(color="#4682B4", width=3),
                 marker=dict(size=4),
             ))
+
             fig.update_layout(
-                xaxis=dict(title=translations["episode"][lang_code], range=[0, len(df) + 5]),
-                yaxis=dict(title=translations["cum_escapes"][lang_code], range=[0, max(df["jade_cum"].max(), df["leo_cum"].max()) + 3]),
-                height=450, margin=dict(l=40, r=40, t=20, b=40),
+                xaxis=dict(
+                    title=translations["episode"][lang_code],
+                    range=[0, len(df) + 5]
+                ),
+                yaxis=dict(
+                    title=translations["cum_escapes"][lang_code],
+                    range=[0, max(df["jade_cum"].max(), df["leo_cum"].max()) + 3]
+                ),
+                height=450,
+                margin=dict(l=40, r=40, t=20, b=40),
                 legend=dict(x=0.02, y=0.98, bgcolor="rgba(255,255,255,0.8)"),
                 template="simple_white",
             )
+
             chart_placeholder.plotly_chart(fig, use_container_width=True)
-            time.sleep(0.02)
-        st.info(translations["section_1_info"][lang_code])
+            time.sleep(0.05)
+
+        st.success(
+            translations["section_1_success"][lang_code].format(
+                jade=df["jade_escapes"].sum(),
+                leo=df["leo_escapes"].sum()
+            )
+        )
+
     else:
         fig_empty = go.Figure()
+
         fig_empty.update_layout(
-            xaxis=dict(title="Эпізод", range=[0, len(df) + 5]),
-            yaxis=dict(title="Накопичені втечі", range=[0, max(df["jade_cum"].max(), df["leo_cum"].max()) + 3]),
-            height=450, margin=dict(l=40, r=40, t=20, b=40),
+            xaxis=dict(
+                title=translations["episode"][lang_code],
+                range=[0, len(df) + 5]
+            ),
+            yaxis=dict(
+                title=translations["cum_escapes"][lang_code],
+                range=[0, max(df["jade_cum"].max(), df["leo_cum"].max()) + 3]
+            ),
+            height=450,
+            margin=dict(l=40, r=40, t=20, b=40),
             template="simple_white",
         )
+
         chart_placeholder.plotly_chart(fig_empty, use_container_width=True)
-        st.info("Натисни ▶ Запуск, щоб побачити гонку втеч.")
+        st.info(translations["section_1_info"][lang_code])
 
 st.divider()
 
@@ -302,6 +336,7 @@ st.markdown(translations["section_2_text"][lang_code])
 
 total_ali = int(df["ali_meter"].sum())
 
+# Координаты шкалы на картинке силомера (1024×1536)
 IMG_W, IMG_H = 1024, 1500
 SCALE_BOTTOM_Y = 1205
 SCALE_TOP_Y = 500
@@ -313,37 +348,30 @@ def render_silomer(fill_value, max_value=30):
     fill_y_top = SCALE_BOTTOM_Y - (SCALE_BOTTOM_Y - SCALE_TOP_Y) * fill_frac
 
     fig = go.Figure()
-
     if silomer_img:
         fig.add_layout_image(
             dict(
                 source=silomer_img,
-                xref="x",
-                yref="y",
-                x=0,
-                y=0,
-                sizex=IMG_W,
-                sizey=IMG_H,
+                xref="x", yref="y",
+                x=0, y=0,
+                sizex=IMG_W, sizey=IMG_H,
                 sizing="stretch",
                 opacity=1.0,
                 layer="below",
             )
         )
-
     fig.add_shape(
         type="rect",
-        x0=SCALE_CENTER_X - SCALE_WIDTH / 2,
+        x0=SCALE_CENTER_X - SCALE_WIDTH/2,
         y0=fill_y_top,
-        x1=SCALE_CENTER_X + SCALE_WIDTH / 2,
+        x1=SCALE_CENTER_X + SCALE_WIDTH/2,
         y1=SCALE_BOTTOM_Y,
         fillcolor="rgba(220, 50, 50, 0.7)",
         line=dict(width=0),
         layer="above",
     )
-
     fig.update_xaxes(visible=False, range=[0, IMG_W])
     fig.update_yaxes(visible=False, range=[IMG_H, 0], scaleanchor="x", scaleratio=1)
-
     fig.update_layout(
         height=400,
         width=270,
@@ -352,26 +380,17 @@ def render_silomer(fill_value, max_value=30):
         plot_bgcolor="rgba(0,0,0,0)",
         showlegend=False,
     )
-
     return fig
 
 if "ali_hit" not in st.session_state:
     st.session_state.ali_hit = False
 
 col1, col2, col3 = st.columns([1, 1, 1])
-
 with col2:
     placeholder_ali = st.empty()
-
     btn_col1, btn_col2, btn_col3 = st.columns([1, 2, 1])
-
     with btn_col2:
-        if st.button(
-            translations["hit_button"][lang_code],
-            type="primary",
-            key="hit_ali",
-            use_container_width=True
-        ):
+        if st.button(translations["hit_button"][lang_code], type="primary", key="hit_ali", use_container_width=True):
             st.session_state.ali_hit = True
 
 if st.session_state.ali_hit:
@@ -387,15 +406,12 @@ if st.session_state.ali_hit:
                 episodes=len(df)
             )
         )
-
         if st.button(translations["reset_button"][lang_code], key="reset_ali"):
             st.session_state.ali_hit = False
             st.rerun()
-
 else:
     fig = render_silomer(0, max_value=total_ali)
     placeholder_ali.plotly_chart(fig, use_container_width=False)
-
 # === СЕКЦИЯ 3: ГАДАНИЯ ЗОРАИДЕ ===
 st.header(translations["section_3_title"][lang_code])
 
