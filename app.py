@@ -222,7 +222,6 @@ st.divider()
 
 # === СЕКЦИЯ 1: ЖАДИ vs ЛЕО ===
 
-# === СЕКЦИЯ 1: ЖАДИ vs ЛЕО ===
 st.header(translations["section_1_title"][lang_code])
 st.markdown(translations["section_1_text"][lang_code])
 
@@ -256,8 +255,7 @@ with col_chart:
     chart_placeholder = st.empty()
 
     if st.button(translations["start_button"][lang_code], type="primary", key="start_jade_leo"):
-        step = 3
-
+        step = 8
         for i in range(1, len(df) + 1, step):
             sub = df.iloc[:i]
             fig = go.Figure()
@@ -296,7 +294,7 @@ with col_chart:
             )
 
             chart_placeholder.plotly_chart(fig, use_container_width=True)
-            time.sleep(0.05)
+            time.sleep(0.1)
 
         st.success(
             translations["section_1_success"][lang_code].format(
@@ -307,7 +305,6 @@ with col_chart:
 
     else:
         fig_empty = go.Figure()
-
         fig_empty.update_layout(
             xaxis=dict(
                 title=translations["episode"][lang_code],
@@ -321,9 +318,9 @@ with col_chart:
             margin=dict(l=40, r=40, t=20, b=40),
             template="simple_white",
         )
-
         chart_placeholder.plotly_chart(fig_empty, use_container_width=True)
         st.info(translations["section_1_info"][lang_code])
+
 
 st.divider()
 
